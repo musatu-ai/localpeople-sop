@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Local People · Operasyon</title>
+<style>
+:root{
+  --coffee:#2C1A0E;--coffee-mid:#6B3A2A;--coffee-light:#C4876A;
+  --cream:#FBF5EE;--warm:#FFFCF8;--accent:#C4541A;
+  --ok:#2A6E44;--warn:#B8860B;--err:#B82020;
+  --g1:#F5F0EB;--g2:#E8E0D8;--g4:#9E8E82;--g6:#5C4F47;--g8:#2C2420;
+  --border:#E0D5CB;--shadow:0 2px 8px rgba(44,26,14,.08);
+  --nav-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--cream);color:var(--g8);min-height:100vh;font-size:15px;line-height:1.5;padding-bottom:var(--nav-h);}
+.screen{display:none;flex-direction:column;min-height:calc(100vh - var(--nav-h));}
+.screen.active{display:flex;}
+/* LOGIN */
+#login-screen{background:var(--coffee);align-items:center;justify-content:center;padding:2rem;min-height:100vh;}
+.lcard{background:var(--warm);border-radius:16px;padding:2rem;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.brand{font-size:22px;font-weight:700;color:var(--coffee);text-align:center;}.sub{font-size:11px;color:var(--g4);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:1.5rem;}
+.fg{margin-bottom:1rem;}.fg label{display:block;font-size:11px;font-weight:700;color:var(--g6);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;color:var(--g8);background:var(--warm);outline:none;transition:border .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--coffee-light);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-p{background:var(--coffee);color:#fff;}.btn-p:hover{background:var(--coffee-mid);}
+.btn-ok{background:var(--ok);color:#fff;}.btn-err{background:var(--err);color:#fff;}
+.btn-out{background:transparent;border:1.5px solid var(--border);color:var(--g6);}
+.btn-full{width:100%;}.btn:disabled{opacity:.5;cursor:not-allowed;}
+/* TOPBAR */
+.topbar{background:var(--coffee);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;min-height:52px;}
+.topbar .bk{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 4px;line-height:1;display:flex;align-items:center;}
+.topbar .ttl{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar .uinfo{font-size:11px;background:rgba(255,255,255,.15);padding:4px 8px;border-radius:20px;white-space:nowrap;}
+.topbar .lbtn{background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:12px;}
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--warm);border-top:1px solid var(--border);display:flex;z-index:200;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--g4);font-size:10px;font-weight:600;transition:color .15s;}
+.bnav-btn .ico{font-size:20px;}
+.bnav-btn.active{color:var(--coffee);}
+/* CONTENT */
+.content{flex:1;padding:16px;overflow-y:auto;}
+/* CARDS */
+.card{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.card-title{font-size:12px;font-weight:700;color:var(--g6);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.b-pend{background:#FFF3E0;color:#E65100;}.b-done{background:#E8F5E9;color:#1B5E20;}
+.b-sub{background:#E3F2FD;color:#1565C0;}.b-appr{background:#E8F5E9;color:#1B5E20;}
+.b-rej{background:#FFEBEE;color:#B71C1C;}.b-miss{background:#FFF3E0;color:#BF360C;}
+/* LIST ITEMS */
+.li{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;}
+.li:hover{border-color:var(--coffee-light);box-shadow:var(--shadow);}
+.li-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.li-info{flex:1;}.li-title{font-size:14px;font-weight:600;}.li-meta{font-size:12px;color:var(--g4);margin-top:2px;}
+/* TASKS */
+.sec-hdr{background:var(--coffee);color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;}
+.task{padding:12px;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--border);background:var(--warm);transition:all .15s;}
+.task.done{background:#F0FFF4;border-color:#A8D5B5;}
+.task.crit{border-left:3px solid var(--accent);}
+.task.crit.done{border-left-color:var(--ok);}
+.task-row{display:flex;align-items:flex-start;gap:10px;}
+.chk{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all .15s;user-select:none;}
+.chk.on{background:var(--ok);border-color:var(--ok);color:#fff;font-size:14px;font-weight:700;}
+.task-txt{flex:1;font-size:14px;line-height:1.5;}
+.task-txt.done{color:var(--g4);text-decoration:line-through;}
+.crit-lbl{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-top:5px;}
+.photo-area{margin-top:10px;}
+.photo-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--coffee-mid);cursor:pointer;padding:7px 10px;background:var(--g1);border-radius:6px;border:1px dashed var(--coffee-light);width:100%;font-weight:600;}
+.photo-ok{font-size:11px;color:var(--ok);margin-top:4px;font-weight:600;}
+.photo-preview{width:80px;height:80px;border-radius:8px;object-fit:cover;margin-top:8px;border:2px solid var(--border);cursor:pointer;}
+/* SUBMIT BAR */
+.sbar{position:sticky;bottom:var(--nav-h);background:var(--warm);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;align-items:center;}
+.prog-txt{flex:1;font-size:13px;color:var(--g4);}
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.stat-n{font-size:28px;font-weight:700;color:var(--coffee);}
+.stat-l{font-size:11px;color:var(--g4);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+/* APPROVAL */
+.appr{background:var(--warm);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.appr-hdr{background:var(--g1);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+.appr-body{padding:14px 16px;}
+.appr-acts{display:flex;gap:8px;margin-top:12px;}
+.appr-task{padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:13px;}
+.appr-task:last-child{border-bottom:none;}
+.dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.dot.y{background:#E8F5E9;color:var(--ok);}.dot.n{background:#FFEBEE;color:var(--err);}
+.thumb{width:50px;height:50px;border-radius:6px;object-fit:cover;border:1px solid var(--border);cursor:pointer;flex-shrink:0;}
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--g1);padding:3px;border-radius:10px;margin-bottom:16px;}
+.tab{flex:1;padding:8px;border:none;background:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--g4);transition:all .15s;}
+.tab.active{background:var(--warm);color:var(--coffee);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+/* RULES & JD */
+.rules-section{margin-bottom:20px;}
+.rules-section h2{font-size:14px;font-weight:700;color:var(--coffee);background:var(--g1);padding:10px 14px;border-radius:8px;margin-bottom:8px;border-left:3px solid var(--coffee-light);}
+.rules-section ul{list-style:none;}.rules-section li{font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);line-height:1.6;padding-left:16px;position:relative;}
+.rules-section li:before{content:"•";position:absolute;left:0;color:var(--coffee-light);}
+.rules-section li:last-child{border-bottom:none;}
+.rules-section p{font-size:13px;line-height:1.7;color:var(--g6);margin-bottom:8px;padding:0 4px;}
+/* ALERTS */
+.alert{padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px;}
+.alert-info{background:#E3F2FD;color:#1565C0;border:1px solid #BBDEFB;}
+.alert-ok{background:#E8F5E9;color:#1B5E20;border:1px solid #C8E6C9;}
+.alert-warn{background:#FFF8E1;color:#BF360C;border:1px solid #FFCC02;padding:14px;border-radius:10px;border-left:4px solid var(--warn);}
+.alert-err{background:#FFEBEE;color:#B71C1C;border:1px solid #FFCDD2;}
+/* INCIDENTS */
+.inc-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.inc-row.has-g{border-left:3px solid var(--err);}
+.inc-lbl{flex:1;font-size:13px;}
+.inc-btn{padding:4px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--warm);}
+.inc-btn.g-on{background:#FFEBEE;border-color:var(--err);color:var(--err);}
+.inc-btn.a-on{background:#E8F5E9;border-color:var(--ok);color:var(--ok);}
+/* SHIFT */
+.shift-grid{overflow-x:auto;}
+.shift-table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px;}
+.shift-table th{background:var(--coffee);color:#fff;padding:8px 6px;text-align:center;font-size:11px;}
+.shift-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.shift-table td:first-child{font-weight:600;font-size:12px;text-align:left;padding-left:10px;}
+.shift-cell{padding:3px 6px;border-radius:4px;font-size:11px;font-weight:600;display:inline-block;margin:2px;}
+.s1{background:#DCEEFB;color:#1565C0;}.s2{background:#E8F5E9;color:#1B5E20;}.soff{background:var(--g1);color:var(--g4);}
+/* MISSING WARN BANNER */
+.missing-banner{background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:14px;margin-bottom:16px;}
+.missing-banner .title{font-size:13px;font-weight:700;color:#E65100;margin-bottom:8px;}
+.missing-banner .item{font-size:12px;color:#BF360C;padding:4px 0;display:flex;align-items:center;gap:8px;}
+.missing-banner .item:before{content:"⚠";font-size:14px;}
+/* MISC */
+.note-box{background:#FFF8E6;border:1px solid #F0D080;border-radius:8px;padding:10px 12px;font-size:12px;color:#7A5C00;margin:8px 0;}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%);background:var(--g8);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+.loading{text-align:center;padding:3rem;color:var(--g4);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--coffee);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:3rem 1rem;color:var(--g4);}
+.sep{height:1px;background:var(--border);margin:16px 0;}
+.jd-section{margin-bottom:20px;}
+.jd-section h3{font-size:13px;font-weight:700;color:var(--coffee);background:rgba(44,26,14,.06);padding:8px 12px;border-radius:6px;margin-bottom:6px;}
+.jd-section ul{list-style:none;}.jd-section li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--g1);line-height:1.6;padding-left:16px;position:relative;}
+.jd-section li:before{content:"•";position:absolute;left:0;color:var(--coffee-light);}
+.jd-section li:last-child{border-bottom:none;}
+.jd-section p{font-size:13px;line-height:1.7;color:var(--g6);margin:4px 0;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div class="screen active" id="login-screen">
+<div class="lcard">
+<div class="brand">☕ Local People</div>
+<div class="sub">Operasyon Sistemi</div>
+<div id="lerr" style="display:none;color:var(--err);font-size:13px;margin-bottom:12px;padding:8px;background:#FFEBEE;border-radius:6px;"></div>
+<div class="fg"><label>E-posta</label><input type="email" id="l-email" placeholder="ad@localpeople.com"/></div>
+<div class="fg"><label>Şifre</label><input type="password" id="l-pass" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+<button class="btn btn-p btn-full" onclick="doLogin()" id="lbtn">Giriş Yap</button>
+<p style="text-align:center;margin-top:1rem;font-size:11px;color:var(--g4);">Local People Coffee · v2.0</p>
+</div>
+</div>
+
+<!-- APP -->
+<div class="screen" id="app-screen">
+<div class="topbar" id="topbar">
+<button class="bk" id="back-btn" onclick="goBack()" style="display:none;">‹</button>
+<div class="ttl" id="ttl">Local People</div>
+<div class="uinfo" id="uinfo"></div>
+<button class="lbtn" onclick="doLogout()">Çıkış</button>
+</div>
+<div class="content" id="main-content"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
+<div class="sbar" id="sbar" style="display:none;">
+<div class="prog-txt" id="prog-txt"></div>
+<button class="btn btn-p" id="sub-btn" onclick="submitForm()">Gönder & Onaya Sun</button>
+</div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav" id="bnav" style="display:none;">
+<button class="bnav-btn active" id="nav-sop" onclick="navTo('sop')"><span class="ico">✅</span>Checklistler</button>
+<button class="bnav-btn" id="nav-rules" onclick="navTo('rules')"><span class="ico">📖</span>Kurallar</button>
+<button class="bnav-btn" id="nav-jd" onclick="navTo('jd')"><span class="ico">👤</span>Görev</button>
+<button class="bnav-btn" id="nav-shift" onclick="navTo('shift')"><span class="ico">📅</span>Shift</button>
+<button class="bnav-btn" id="nav-log" onclick="navTo('log')"><span class="ico">📋</span>Logbook</button>
+</nav>
+
+<input type="file" accept="image/*" capture="environment" id="photo-input" style="display:none;"/>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import{getFirestore,doc,setDoc,getDoc,collection,query,where,getDocs,addDoc,updateDoc,onSnapshot,serverTimestamp,orderBy,limit}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import{getStorage,ref as sRef,uploadBytes,getDownloadURL}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+// ================================================================
+// FIREBASE CONFIG — Replace with your project values
+// ================================================================
+const firebaseConfig={
+  apiKey:"AIzaSyBukIVcYLAPmYRZUDE5BhLM15NsHfiyP3Y",
+  authDomain:"localpeople-sop.firebaseapp.com",
+  projectId:"localpeople-sop",
+  storageBucket:"localpeople-sop.firebasestorage.app",
+  messagingSenderId:"475085948719",
+  appId:"1:475085948719:web:77c39b9499076d60da83da"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const stor=getStorage(app);
+
+// ================================================================
+// ROLLER & ROL-JD HARİTASI
+// ================================================================
+const ROLES={
+  manager:{label:'Müdür',color:'#7B1FA2'},
+  bar_sef:{label:'Bar Şefi',color:'#1565C0'},
+  barista:{label:'Barista',color:'#00838F'},
+  jr_barista:{label:'Jr. Barista',color:'#00695C'},
+  komi:{label:'Komi',color:'#E65100'},
+  temizlik:{label:'Temizlik',color:'#2E7D32'},
+  gece_bekcisi:{label:'Gece Bekçisi',color:'#1A237E'},
+  mutfak_sefi:{label:'Mutfak Şefi',color:'#4E342E'},
+  asci:{label:'Aşçı',color:'#5D4037'},
+  pastaci:{label:'Pastacı',color:'#6A1B9A'},
+  kasiyyer:{label:'Kasiyyer',color:'#0277BD'},
+  ofis:{label:'Ofis Yöneticisi',color:'#558B2F'},
+  bulasikcı:{label:'Bulaşıkçı',color:'#00695C'},
+};
+
+const MISSING_JD=['mutfak_sefi','asci','pastaci','kasiyyer','ofis','bulasikcı'];
+const MISSING_JD_LABELS={
+  mutfak_sefi:'Mutfak Şefi',asci:'Aşçı',pastaci:'Pastacı / Bakery',
+  kasiyyer:'Kasiyyer',ofis:'Ofis Yöneticisi',bulasikcı:'Bulaşıkçı'
+};
+
+// ================================================================
+// İÇERİK: GENEL DİSİPLİN KURALLARI
+// ================================================================
+const RULES=[
+  {title:'1. İş Ahlakı ve Profesyonel Tutum',items:[
+    'Tüm çalışanlar görevine zamanında ve eksiksiz hazırlanarak başlamakla yükümlüdür.',
+    'İş yerinde olumlu, yapıcı, yardımsever ve ekip ruhuna uygun bir tutum sergilenmelidir.',
+    'Yöneticilerin belirlemiş olduğu günlük görev yerlerinde (Kasa&Bakery, Espresso&Soğuk Bar) en az birer kişi günün her saatinde hazır bulunmalıdır.',
+    'İş yoğunluğunun az olmasına bağlı olarak görev yerleri kesinlikle boş bırakılamaz.',
+    'Kurum hiyerarşisine saygı gösterilmeli, verilen görevler eksiksiz ve zamanında yerine getirilmelidir.',
+    'Problem çözme yaklaşımı benimsenmeli, sorunlar yöneticilere doğru şekilde aktarılmalıdır.',
+    'İş arkadaşlarına saygılı, destekleyici ve saygı çerçevesinde davranılmalıdır.',
+  ]},
+  {title:'2. İletişim Kuralları',items:[
+    'Müşterilere karşı her zaman nazik, saygılı, güler yüzlü ve çözüm odaklı yaklaşım esastır.',
+    'Müşteriyle tartışmaya girilmez; anlaşmazlık durumları doğrudan vardiya sorumlusuna bildirilmelidir.',
+    'Çalışanlar arasında iletişim profesyonel ve ölçülü olmalı; yüksek sesle konuşma, argo ve küfürlü dil kesinlikle yasaktır.',
+    'Müşteri alanlarında özel konuların konuşulması kesinlikle yasaktır (siyaset, din, ırk, cinsiyet, spor rekabeti vb.).',
+  ]},
+  {title:'3. Bar Alanında Cep Telefonu Kullanımı',items:[
+    'Bar alanında hiçbir şekilde kişisel cep telefonu kullanılamaz.',
+    'Telefonla konuşmak, mesajlaşmak veya sosyal medya kullanmak kesinlikle yasaktır.',
+    'Telefonlar vardiya süresince sessize alınarak çalışan dolabında muhafaza edilmelidir.',
+    'Acil durumlar dışında yalnızca mola alanlarında telefon kullanılabilir.',
+    'Bu kurala uyulmaması durumunda ilk ihlalde uyarı, tekrarında resmi disiplin işlemi uygulanır.',
+  ]},
+  {title:'4. Mola Kuralları',items:[
+    'Günlük toplam mola süresi 1 saattir: 1 adet 30 dk ana mola (yemek) + 2 adet 15 dk kısa mola.',
+    'Molalar sadece ilgili personele ait mola alanında yapılmalıdır.',
+    'Bar, mutfak, veranda veya müşteri alanlarında mola yapılması kesinlikle yasaktır.',
+    'Rush hour (20:00–23:00) saatleri içerisinde mola kesinlikle yasaktır. Acil ihtiyaç varsa vardiya şefi onayıyla max 5 dakika, 1 kere ihtiyaç molası kullanılabilir.',
+    'Mola saatleri vardiya sorumlusu tarafından planlanır.',
+  ]},
+  {title:'5. Zamanında İşe Geliş ve Devamsızlık',items:[
+    'Personel vardiya saatinden en az 10 dakika önce görev alanında hazır bulunmalıdır.',
+    '15 dakika ve üzeri geç kalma durumlarında maaş kesintisi uygulanır.',
+    'Geç kalmalar 3 tekrar ettiğinde yazılı uyarıya dönüşür.',
+    'Devamsızlık durumları en az 1 gün önceden sorumluya bildirilmelidir.',
+    'Habersiz işe gelmeme durumu yazılı tutanakla kayıt altına alınır.',
+  ]},
+  {title:'6. Kılık Kıyafet ve Kişisel Bakım',items:[
+    'Üniforma temiz, ütülü ve eksiksiz olmalıdır.',
+    'İsimlik tüm vardiya boyunca yakada ve görünür olmalıdır.',
+    'Tırnaklar kısa, bakımlı ve temiz olmalıdır. Oje ve tırnak süslemeleri kabul edilmez.',
+    'Saçlar toplu ve temiz olmalı, hijyen kurallarına uygun görünüm sağlanmalıdır.',
+    'Aşırı parfüm, dikkat çekici takılar ve yoğun makyaj kullanılmamalıdır.',
+  ]},
+  {title:'7. Hijyen ve Kişisel Temizlik',items:[
+    'Eller düzenli olarak yıkanmalı ve görev öncesi dezenfekte edilmelidir.',
+    'Mutfak ve servis alanlarında gerektiğinde eldiven, bone gibi koruyucu ekipmanlar kullanılmalıdır.',
+    'Müşterilerin görebildiği alanlarda yüz, saç vb. vücut alanlarına dokunulmamalıdır.',
+    'Tuvalet sonrası ellerin sabunla yıkanması ve dezenfekte edilmesi zorunludur.',
+    'Bulaşıcı hastalık durumlarında yönetim bilgilendirilmeli, çalışmaya devam edilmemelidir.',
+  ]},
+  {title:'8. Kişisel Eşyalar ve Ortak Alan Kullanımı',items:[
+    'Kişisel eşyalar sadece personel dolaplarında muhafaza edilmelidir.',
+    'Müşteri alanlarında kişisel eşyalar bırakılmamalıdır.',
+    'Kulaklık, powerbank, şarj cihazı gibi ekipmanlar bar ve müşteri alanlarına taşınmamalıdır.',
+  ]},
+  {title:'9. Sigara Kullanımı',items:[
+    'Sigara içimi yalnızca işletme tarafından belirlenmiş açık alanda yapılabilir.',
+    'Müşterilerin oturum alanlarında sigara içmek ve mola yapmak kesinlikle yasaktır.',
+    'Müşteri veya çocukların görebileceği alanlarda sigara içilmesi yasaktır.',
+    'Sigara izmaritleri uygun şekilde atılmalı, çevre kirletilmemelidir.',
+  ]},
+  {title:'10. İş Dışı Zamanlarda İşletme Alanında Bulunmama',items:[
+    'Vardiya dışında işletmede bulunmak veya arkadaş beklemek amacıyla masa işgali yapmak yasaktır.',
+    'İşletme kapanış saati sonrası vardiyası biten personel işletmeden ayrılmalıdır.',
+    'Mesai dışı işletme kullanımı için yönetimden özel izin alınmalıdır.',
+  ]},
+];
+
+// ================================================================
+// GÖREV TANIMLARI
+// ================================================================
+const JOB_DESCRIPTIONS={
+  manager:{
+    title:'Operasyon Yöneticisi',
+    amaç:'Operasyon Yöneticisi, Local People Coffee Başakşehir şubesinin tüm operasyonel, teknik, temizlik, güvenlik, idari ve müşteri ilişkileri süreçlerini tek yetkili olarak yönetir.',
+    sections:[
+      {title:'3.1 Genel Görev ve Sorumluluklar',items:['Şubenin tüm operasyon süreçlerinden tek yetkili olarak sorumlu olmak.','İşletmenin açılış, kapanış ve vardiya devri düzenini uygulatmak ve denetlemek.','Bar, müşteri alanları, depo, backroom, teknik ekipmanlar ve dış alanların düzen ve işleyişini yönetmek.','Operasyonun kesintisiz devam etmesi için sahada aktif olarak bulunmak.','İşletme sahibi adına operasyonel kararları almak ve uygulamak.']},
+      {title:'3.2 Teknik İşler ve Altyapı',items:['Tüm teknik ekipmanların sorunsuz çalışmasını sağlamak.','Arızalara hızlı aksiyon almak ve onarım süreçlerini takip etmek.','Periyodik bakım süreçlerini planlamak ve kontrol etmek.']},
+      {title:'3.3 Personel Yönetimi',items:['Bar Şefi, Baristalar, Komiler ve temizlik personelinden oluşan ekibi yönetmek.','İşe alım, eğitim, vardiya planlama, performans ve disiplin süreçlerini yürütmek.','Kılık kıyafet ve hijyen standartlarının uygulanmasını sağlamak.']},
+      {title:'3.4 Müşteri Memnuniyeti',items:['Tüm müşteri şikayet ve taleplerinin ilk çözüm mercii olmak.','Google yorum performansını takip etmek.','Müşteri deneyimi standartlarının tüm ekip tarafından uygulanmasını sağlamak.']},
+      {title:'3.5 Stok & Satın Alma',items:['Depo düzeni, stokların takibi ve FIFO prensibinin uygulanmasını sağlamak.','Günlük–haftalık stok kontrolleri yaparak eksikleri belirlemek.','Satın alma taleplerini zamanında Satın Alma Departmanına iletmek.']},
+      {title:'Raporlama',items:['Açılış–kapanış checklist raporları','Stok & sipariş raporları','Fire–zayi raporu','Kasa kapanış ve finansal raporlamalar','Personel performans & disiplin raporları','Günlük operasyon genel durum raporu']},
+    ]
+  },
+  bar_sef:{
+    title:'Bar Şefi',
+    amaç:'Bar Şefi, Local People Coffee\'de günlük operasyonun düzenli ve standartlara uygun yürütülmesinden sorumludur.',
+    sections:[
+      {title:'3.1 Genel Görev ve Sorumluluklar',items:['Bar operasyonlarının sorunsuz ve standartlara uygun şekilde işlemesini sağlamak.','İşletmenin tüm genel temizliğinin kontrolünden ve sürekliliğinden sorumlu olmak.','Bar, salon, mutfak çevresi dahil tüm alanların düzen ve hijyen standartlarını denetlemek.','Ekipmanların çalışır durumda olmasını sağlamak; arıza durumunda hızlı aksiyon almak.','Açılış, kapanış ve vardiya devri checklist düzeninin eksiksiz uygulanmasını sağlamak.']},
+      {title:'3.2 Stok ve Sipariş',items:['Bar stoklarını düzenli olarak kontrol eder.','Haftalık sipariş listesini her Cuma saat 15:00\'e kadar Operasyon Yöneticisine iletir.','Stok kaybı, israf ve gereksiz tüketimi minimize etmek için önlemler alır.']},
+      {title:'3.3 Operasyonel Katılım',items:['Vardiya sırasında aktif görev alır: espresso bar, soğuk bar, kasa & bakery veya joker görev.','Operasyon temposuna göre personel yönlendirmesi yapar.','Günlük brifing yaparak ekibi yönlendirir.']},
+      {title:'3.4 Müşteri Memnuniyeti',items:['Müşteri şikayet ve önerilerini ilk aşamada çözer; çözülemeyenleri yönetime raporlar.','Her vardiyada ikram ve tadım uygulamalarıyla günlük en az 5 Google yorumu alınmasını sağlar.','Tüm müşteri sorunlarını logbook defterine eksiksiz kaydeder.']},
+      {title:'Raporlama',items:['Açılış–kapanış ve vardiya devri checklistleri','Kasa kapanış raporu','Fire ve zayi raporu','Stok kontrol raporları','Günlük logbook kayıtları']},
+    ]
+  },
+  barista:{
+    title:'Barista & Jr. Barista',
+    amaç:'Barista ve Jr. Baristalar, misafirlere sunulan tüm içecek ve ilgili ürünlerin standart reçetelere uygun, hızlı ve güler yüzle hazırlanmasından sorumludur.',
+    sections:[
+      {title:'3.1 Ürün Hazırlama',items:['Sıcak ve soğuk kahve içecekleri, çaylar, özel içecekleri standart reçeteye göre hazırlamak.','Espresso shot süresi, öğütüm, süt ısısı, köpük kıvamı gibi teknik detaylara uygun çalışmak.','Sunumun bardak boyu, gramaj ve görsel standartlara uygun olmasını sağlamak.','Ürün hazırlarken hız, kalite ve israf dengesini gözetmek.']},
+      {title:'3.2 Misafir Deneyimi',items:['Müşterileri güler yüzle "Hoş geldiniz" diyerek karşılamak.','Sipariş alırken dikkatli, ilgili ve sabırlı olmak.','Ürün değişim taleplerine "Elbette, hemen yardımcı olayım" yaklaşımıyla yanıt vermek.','Çocuklara, yaşlılara veya özel ihtiyacı olan misafirlere ekstra hassasiyet göstermek.']},
+      {title:'3.3 Hazırlık (Mise-en-place)',items:['Tüm bar mise-en-place\'ini check-listelere göre eksiksiz hazırlamak.','Gün içinde eksilen ürünleri kontrol edip Bar Şefine bildirmek.','Mise-en-place\'in gün boyu temiz, düzenli ve dolu tutulmasını sağlamak.']},
+      {title:'3.4 Temizlik ve Düzen',items:['Çalıştığı bar alanının, tezgâhın, makinelerin ve ekipmanların temizliğini sağlamak.','Çöp kovalarının doluluğunu kontrol etmek, dolanları çıkarmak.','Gerektiğinde masalardaki boşları toplamak ve alan düzenine destek olmak.']},
+      {title:'Raporlama',items:['Tüm operasyon süresince doğrudan Bar Şefine raporlama yapar.','Eksik stoklar, arıza ve teknik sorunlar, müşteri şikayetleri Bar Şefine bildirilir.']},
+    ]
+  },
+  jr_barista:{
+    title:'Jr. Barista',
+    amaç:'Jr. Barista, Barista pozisyonuna hazırlık niteliğinde olup görevler Barista ile aynıdır. Jr. Baristalar bu görevleri daha yoğun gözetim ve eğitim desteğiyle yerine getirir.',
+    sections:[
+      {title:'Görev ve Sorumluluklar',items:['Bar Şefi ve Barista tarafından verilen görev ve talimatlara uygun şekilde çalışmak.','Local People Coffee\'nin reçete, sunum, hijyen ve servis standartlarını eksiksiz uygulamak.','Çalıştığı alanın düzeninden, temizliğinden ve operasyonel sürekliliğinden sorumlu olmak.','Operasyon akışı boyunca ekip arkadaşlarıyla uyumlu ve destekleyici şekilde çalışmak.','Gerekli durumlarda tuvalet temizlik ve kontrolüne destek olmak.']},
+    ]
+  },
+  komi:{
+    title:'Komi',
+    amaç:'Komi, misafir alanlarının temizliği, düzeni, masa toparlama süreçleri ve operasyon akışının sorunsuz ilerlemesi için destek görevlerini yerine getirir.',
+    sections:[
+      {title:'3.1 Genel Görev ve Sorumluluklar',items:['İç oturum alanı, üst kat, veranda, bahçe ve otopark dahil tüm müşteri alanlarının düzen ve temizliğinden sorumludur.','Masalardaki boşları zamanında toplamak, masa ve sandalye düzenini servise hazır hale getirmek.','Küllükleri düzenli kontrol etmek, doldukça değiştirmek.','Bardak, tabak, çatal-kaşık gibi boşları bar veya bulaşık alanına taşımak.','Bar Şefinin yönlendirmesiyle tuvalet temizliğine destek olmak.']},
+      {title:'3.2 Temizlik ve Alan Düzeni',items:['Bar alanı ve backroom hariç, tüm müşteri alanlarının temizliğinden sorumludur.','Servant istasyonlarının düzenini, temizliğini sağlamak.','Çöp kovalarının doluluk oranını kontrol etmek; dolan çöpleri çıkarmak.','İşletmenin iki ana giriş kapısı ve çevresinin günlük mıntıka temizliğini yapmak.','Dış alanlarda yaprak, çöp, sigara izmariti vb. unsurları düzenli temizlemek.']},
+      {title:'3.3 Misafir İletişimi',items:['Misafirlere karşı her zaman güler yüzlü, nazik ve profesyonel olmak.','Misafirlerin taleplerini "Hemen Bar Şefimize iletiyorum" diyerek yönlendirmek.','Misafir alanlarında sessiz ve dikkat çekmeyen bir şekilde çalışmak.']},
+    ]
+  },
+  temizlik:{
+    title:'Temizlik Görevlisi',
+    amaç:'Temizlik görevlisi, Local People Coffee işletmesinin tüm alanlarında temizlik, hijyen ve düzenin marka standartlarına uygun şekilde sağlanmasından sorumludur.',
+    sections:[
+      {title:'3.1 Genel Sorumluluklar',items:['Tüm temizlik görevlerini hijyen kurallarına uygun şekilde yerine getirmek.','Kimyasal temizlik ürünlerini ve ekipmanları doğru, güvenli ve talimatlara uygun kullanmak.','Eksik, arızalı veya tehlike oluşturabilecek durumları Operasyon Yöneticisine bildirmek.','Tüm görevleri belirlenen zaman planına uygun şekilde tamamlamak.']},
+      {title:'3.2 Günlük Temizlik Görevleri',items:['Masa yüzeylerinin, ayaklarının ve masa altı zeminlerinin silinmesi.','Sandalyeler ve sedirlerin süpürülüp temizlenmesi.','Ana salon, üst kat, veranda ve bahçe zemininin süpürülmesi ve paspaslanması.','Giriş kapısı camı ve kapı kollarının temizlenmesi.','Tuvalet zeminleri, klozet, lavabo, ayna ve dispenser temizliği.','Tüm çöp kovalarının boşaltılması ve poşetlerin yenilenmesi.','Ofis ve personel odası zeminlerinin süpürülmesi.']},
+      {title:'3.3 Haftalık Derin Temizlik (Pazartesi)',items:['Zemin yıkama makinesiyle giriş kat temizliği.','Tüm cam yüzeyler iç-dış detaylı temizliği.','Sedir yüzeylerinin, minderlerin ve sedir altlarının detaylı temizliği.','Tüm hareketli mobilyaların, yapay çiçeklerin ve kolon yüzeylerinin temizliği.','Tuvaletlerin çamaşır suyu ile detaylı dezenfeksiyonu.']},
+    ]
+  },
+  gece_bekcisi:{
+    title:'Gece Bekçisi',
+    amaç:'Gece saatlerinde işletmenin tüm alanlarında düzen, güvenlik ve hijyenin korunması; yangın, su baskını ve riskli durumların önlenmesi.',
+    sections:[
+      {title:'Çalışma Saatleri',items:['Günlük çalışma süresi: 9 saat','Vardiya saatleri: 23:00 – 08:00','Her saat başı 10 devriye yapılır ve Gece Bekçisi Kontrol Listesi doldurulur.','Her Cuma: Jeneratör test çalıştırması yapılır.']},
+      {title:'5.1 Yangın Güvenliği',items:['Şemsiyeler altında izmarit / yanık kontrolü.','Veranda tavanında kıvılcım, duman veya elektrik riski kontrolü.','Dış mekan çöp alanlarında ısı / yanık riski kontrolü.']},
+      {title:'5.2 Su ve Yağmur Riskleri',items:['Bahçede su birikmesi, akıntı ve su basma riski kontrolü.','Veranda / teraslarda yağmur kaynaklı damlama veya birikme.','Risk tespit edilirse Operasyon Yöneticisi bilgilendirilir.']},
+      {title:'5.3 Teknik Alan Kontrolleri',items:['Soğuk oda sıcaklıklarının kontrolü; standart dışıysa anında bilgi.','Ana elektrik panosu: yanık kokusu, gevşeme, aşırı ısınma kontrolü.','IT–Server odası: kapı kapalı, ekipman normal çalışıyor mu.','Gereksiz açık ışıklar veya makineler kapatılır veya raporlanır.']},
+      {title:'7. Acil Durum Prosedürü',items:['Şüpheli durum tespit edilirse Operasyon Yöneticisi bilgilendirilir.','Gerekirse 112 / Zabıta / Polis aranır.','Riskli durumlar fotoğraflanarak kayıt altına alınır.']},
+    ]
+  },
+};
+
+// ================================================================
+// SOP FORM VERİLERİ (kısa versiyon - main forms)
+// ================================================================
+const INCIDENTS=['Cam / Sert Plastik Kırılması','Elektrik / Su Kesintisi','Biyolojik Tehlike','Cihaz / Ekipman Arızası','Gider Taşması','İş Kazası'];
+
+const FORMS=[
+  {id:'bar_acilis',title:'Bar Açılış',icon:'☕',color:'#3D1F0D',shift:1,trigger:'daily',roles:['manager','bar_sef','barista','jr_barista'],
+    sections:[
+      {title:'KAHVE BARI AÇILIŞ',tasks:[
+        {id:'ba01',text:'Tüm makinalar açıldı ve test edildi (espresso, filtre, Türk kahvesi, boiler)',critical:false},
+        {id:'ba02',text:'Süt ve alternatif süt ürünlerin FIFO kontrolü yapıldı',critical:false},
+        {id:'ba03',text:'Tüm kahvelerin FIFO kontrolü yapıldı, eksikler tamamlandı',critical:false},
+        {id:'ba04',text:'Tüm şurup ve sos ürünlerin STT kontrolü yapıldı',critical:false},
+        {id:'ba05',text:'Tek kullanımlık ürünler kontrol edildi (bardak, kapak, peçete, şeker, pipet)',critical:false},
+        {id:'ba06',text:'Yeni açılan tüm ürünlere tarih etiketleri takıldı',critical:false},
+        {id:'ba07',text:'4 kg filtre kahve öğütüldü, 30 adet çay bonesi hazırlandı',critical:false},
+        {id:'ba08',text:'Yazıcılar içindeki kağıtlar tam ve çalışıyor',critical:false},
+        {id:'ba09',text:'Espresso reçeteye göre kalibre edildi',critical:true},
+        {id:'ba10',text:'Filtre kahve ve çay reçeteye göre demlendi',critical:false},
+        {id:'ba11',text:'COLD BREW süzüldü, +4 dolapta, tarih etiketi',critical:true},
+        {id:'ba12',text:'SPANISH LATTE BASE hazırlandı, +4 dolapta, tarih/saat etiketi',critical:true},
+        {id:'ba13',text:'Ekipmanlar, tezgahlar, tüm yüzeyler temiz',critical:false},
+        {id:'ba14',text:'Kullanımdaki bezlerin temiz olduğu kontrol edildi',critical:false},
+      ]},
+      {title:'SOĞUK İÇECEK BARI AÇILIŞ',tasks:[
+        {id:'sba01',text:'Portakallar kontrol edildi, çürükler ayrıldı',critical:false},
+        {id:'sba02',text:'Günlük portakal dezenfekte edildi, sıkıldı, +4 dolap STT etiketi',critical:true},
+        {id:'sba03',text:'Tüm şurup ve sos STT kontrolü yapıldı',critical:false},
+        {id:'sba04',text:'HIBISCUS çayı (5.5 lt) demlendi, tarih/saat etiketi',critical:true},
+        {id:'sba05',text:'LİMONATA (10 lt) reçeteye göre hazırlandı, tarih/saat etiketi',critical:true},
+        {id:'sba06',text:'Çeşni barı stokları kontrol edildi, taze meyveler dilimlendi',critical:true},
+        {id:'sba07',text:'Ekipmanlar, tezgahlar, tüm yüzeyler temiz',critical:false},
+        {id:'sba08',text:'Kullanımdaki bezlerin temiz olduğu kontrol edildi',critical:false},
+      ]}
+    ]},
+  {id:'bakery_acilis',title:'Bakery & Kasa Açılış',icon:'🥐',color:'#7B4F2E',shift:1,trigger:'daily',roles:['manager','bar_sef','jr_barista'],
+    sections:[
+      {title:'BAKERY AÇILIŞ',tasks:[
+        {id:'bk01',text:'+4 dolapların çalışır durumda olduğu kontrol edildi',critical:false},
+        {id:'bk02',text:'Likit çikolata makinasına çikolata eklendi ve açıldı',critical:false},
+        {id:'bk03',text:'Fırın temizliği kontrol edildi ve fırın açıldı',critical:false},
+        {id:'bk04',text:'Tüm servis tepsilerinin temizliği ve miktarı kontrol edildi',critical:false},
+        {id:'bk05',text:'Bakery ürünleri belirlenen dizilime göre yerleştirildi (STT FIFO)',critical:true},
+        {id:'bk06',text:'Reyondaki tüm ürünlerin etiketleri düzenlendi',critical:true},
+        {id:'bk07',text:'Maşa, spatula vb. ürünler reyonda hazır',critical:false},
+        {id:'bk08',text:'Her saat başı ısı ölçer göstergesi kayıt formuna kaydedildi',critical:false},
+        {id:'bk09',text:'Tek kullanımlık çatal, bıçak, kaşık, peçete stokları kontrol edildi',critical:false},
+        {id:'bk10',text:'Tüm reyonlardaki ürünlerin altına tarih etiketi takıldı',critical:false},
+        {id:'bk11',text:'Ekipmanlar, tezgahlar, tüm yüzeyler temiz',critical:false},
+        {id:'bk12',text:'Kullanımdaki bezler temiz, yer giderleri temizlendi',critical:false},
+      ]},
+      {title:'KASA AÇILIŞ',tasks:[
+        {id:'ks01',text:'Tüm satış ekranları açıldı (her kasiyer kendi şifresiyle)',critical:false},
+        {id:'ks02',text:'Kasa nakit teslim formu kontrol edildi, sayım yapıldı',critical:true},
+        {id:'ks03',text:'Tüm kasa alanı ve self servis içecek dolapları temizlendi',critical:false},
+        {id:'ks04',text:'Self servis içecek dolabı stokları kontrol edildi',critical:false},
+        {id:'ks05',text:'Tüm yazıcılar ve POS cihazları çalışır, kağıt ruloları takılı',critical:false},
+        {id:'ks06',text:'İşletme açılış saatinde müzik yayını açıldı',critical:false},
+      ]}
+    ]},
+  {id:'devriye',title:'Devriye Temizlik',icon:'🧹',color:'#4A6741',shift:0,trigger:'hourly',roles:['manager','temizlik','komi'],note:'Gündüz: Her saat 08:00–19:00 · Akşam: Her 30 dakika 19:30–01:00',
+    sections:[{title:'SALON DEVRİYE',tasks:[
+        {id:'dv01',text:'Masalar üzerindeki boşlar toplandı',critical:false},
+        {id:'dv02',text:'Kullanılmış küllükler temizlendi veya yenisiyle değiştirildi',critical:false},
+        {id:'dv03',text:'Çöp kovaları kontrol edildi, doluysa değiştirildi',critical:false},
+        {id:'dv04',text:'Dökülen yiyecek ve içecekler temizlendi',critical:false},
+        {id:'dv05',text:'Müşteri alanlarının genel hijyen durumu kontrol edildi',critical:false},
+        {id:'dv06',text:'Tuvalet — lavabo ve klozet durumu',critical:false},
+        {id:'dv07',text:'Tuvalet — sabun ve peçete durumu',critical:false},
+        {id:'dv08',text:'Tuvalet — koku giderici yeterliliği',critical:false},
+        {id:'dv09',text:'Tuvalet — zemin temizliği ve kuruluğu',critical:false},
+    ]}]},
+  {id:'vardiya_devir',title:'Vardiya Devir',icon:'🔄',color:'#3A5080',shift:0,trigger:'handover',roles:['manager','bar_sef','barista'],
+    sections:[
+      {title:'KAHVE & SOĞUK BAR DEVİR',tasks:[
+        {id:'vd01',text:'Süt ve alternatif süt stokları tamamlandı (FIFO)',critical:false},
+        {id:'vd02',text:'Espresso, filtre, Türk kahvesi ve çay stokları akşam için tamamlandı',critical:false},
+        {id:'vd03',text:'Tüm sos ve şurup eksikleri tamamlandı',critical:false},
+        {id:'vd04',text:'Tek kullanımlıklar stoklandı (bardak, kapak, peçete)',critical:false},
+        {id:'vd05',text:'Espresso kalibrasyonu kontrol edildi',critical:true},
+        {id:'vd06',text:'Cold Brew stoğu kontrol edildi, akşam için yeterli',critical:false},
+        {id:'vd07',text:'Hibiscus çayı akşam için demlendi, STT etiketi',critical:true},
+        {id:'vd08',text:'Limonata akşam için hazırlandı, tarih/saat etiketi',critical:true},
+        {id:'vd09',text:'Tüm tezgahlar, dolap içleri temizlendi',critical:false},
+        {id:'vd10',text:'Tüm çöpler atıldı ve bar zemini temizlendi',critical:false},
+      ]},
+      {title:'BAKERY & KASA DEVİR',tasks:[
+        {id:'vdb01',text:'+4 dolaplar çalışır, iç ve dış cam temizliği yapıldı',critical:false},
+        {id:'vdb02',text:'Bakery dolaplarında ürünler STT\'ye göre tamamlandı',critical:true},
+        {id:'vdb03',text:'Reyondaki tüm ürünlerin etiketleri yerinde',critical:false},
+        {id:'vdb04',text:'Kasa devir yönergelerine göre kasa ve sistem devir edildi',critical:false},
+        {id:'vdb05',text:'Kasa X raporları ve nakit para sayımla teslim alındı',critical:true},
+        {id:'vdb06',text:'Tüm çöpler atıldı ve zemin temizliği yapıldı',critical:false},
+      ]}
+    ]},
+  {id:'bar_kapanis_temizlik',title:'Bar Kapanış Temizlik',icon:'🫧',color:'#1E4A6E',shift:2,trigger:'daily',roles:['manager','bar_sef','barista','jr_barista'],
+    sections:[
+      {title:'KAHVE BARI KAPANIŞ TEMİZLİK',tasks:[
+        {id:'bkt01',text:'Espresso makinelerinin dış yüzeyi, damlama tepsisi, buhar çubuğu, grup başları temizlendi',critical:true},
+        {id:'bkt02',text:'Portafiltrelere söküldü ve temizlendi',critical:true},
+        {id:'bkt03',text:'Bulaşık yıkama alanı ve eviyeler temizlendi ve dezenfekte edildi',critical:true},
+        {id:'bkt04',text:'Filtre kahve, çay ve Türk kahvesi makineleri temizlendi',critical:true},
+        {id:'bkt05',text:'Sos pompaları söküldü ve temizlendi',critical:true},
+        {id:'bkt06',text:'Tüm süt pitcherları temizlendi ve dezenfekte edildi',critical:true},
+        {id:'bkt07',text:'Bulaşık makinası suyu boşaltıldı, filtreleri temizlendi',critical:true},
+        {id:'bkt08',text:'Tüm öğütücüler temizlendi',critical:true},
+        {id:'bkt09',text:'Tüm çöpler atıldı, kovaları temizlendi ve temiz poşet takıldı',critical:false},
+        {id:'bkt10',text:'Buz kürekleri, buz ölçekleri, taşıyıcılar dezenfekte edildi',critical:true},
+        {id:'bkt11',text:'Tüm tezgahlar, dolap yüzeyleri, contalar ve dolap içleri temizlendi',critical:true},
+        {id:'bkt12',text:'Tüm bezler yıkandı ve dezenfekte suyuna bırakıldı',critical:true},
+        {id:'bkt13',text:'Bar zemini yıkandı ve su giderleri temizlendi',critical:true},
+      ]},
+      {title:'SOĞUK BAR & BACK ROOM KAPANIŞ',tasks:[
+        {id:'sbkt01',text:'Tüm blender parçaları temizlendi',critical:true},
+        {id:'sbkt02',text:'Soğuk istasyon kapları temizlendi',critical:true},
+        {id:'sbkt03',text:'Portakal sıkma makinesi temizlendi',critical:true},
+        {id:'sbkt04',text:'Çeşni bar ve küvetlerin detaylı temizliği yapıldı',critical:true},
+        {id:'sbkt05',text:'Back room tezgahları ve zemini temizlendi',critical:true},
+        {id:'sbkt06',text:'Back room dolapları FİFO\'ya göre düzenlendi',critical:true},
+        {id:'sbkt07',text:'Bar zemini yıkandı ve yer giderleri temizlendi',critical:true},
+      ]}
+    ]},
+  {id:'bar_kapanis_ops',title:'Bar & Bakery Kapanış Operasyon',icon:'🔒',color:'#3D2B1A',shift:2,trigger:'daily',roles:['manager','bar_sef','barista'],
+    sections:[
+      {title:'BAR KAPANIŞ OPERASYON',tasks:[
+        {id:'bko01',text:'Tüm kahve stokları bar dolaplarında tamamlandı',critical:false},
+        {id:'bko02',text:'COLD BREW reçeteye uygun demlendi, +4 dolap, tarih/saat etiketi',critical:true},
+        {id:'bko03',text:'Kullanımdaki tüm ürünlerin son kullanma tarihleri kontrol edildi',critical:false},
+        {id:'bko04',text:'Tek kullanımlık ürünlerin stokları sabah için tamamlandı',critical:false},
+      ]},
+      {title:'BAKERY & KASA KAPANIŞ',tasks:[
+        {id:'bkk01',text:'Tüm ürünlerin sayımı yapıldı ve sayım formuna işlendi',critical:true},
+        {id:'bkk02',text:'STT dolan tüm ürünler imha edildi ve zayi formuna işlendi',critical:true},
+        {id:'bkk03',text:'STT dolmayan ürünler back room +4 dolaba kaldırıldı',critical:true},
+        {id:'bkk04',text:'Fırın kapatıldı ve ilgili kimyasal ile temizlendi',critical:true},
+        {id:'bkk05',text:'Kasa Z raporları ve nakit zarflanarak muhasebeye teslim edildi',critical:true},
+      ]}
+    ]},
+  {id:'teknik',title:'Teknik İşler',icon:'⚙️',color:'#2A4040',shift:0,trigger:'daily',roles:['manager','bar_sef'],
+    sections:[{title:'AÇILIŞ & KAPANIŞ TEKNİK',tasks:[
+        {id:'tk01',text:'Bar menü ekranları, LED ışıklar, spotlar açıldı',critical:false},
+        {id:'tk02',text:'Genel aydınlatma açıldı (aplikler, dimli ışıklar, tuvaletler)',critical:false},
+        {id:'tk03',text:'Klima / ısıtma açıldı (22°C yaz, combatlar kış)',critical:false},
+        {id:'tk04',text:'Tüm otomatik kapılar aktif ve otomatik konumda',critical:false},
+        {id:'tk05',text:'Müzik sistemi açıldı ve doğru playlist seçildi',critical:false},
+        {id:'tk06',text:'Kapanışta: tüm aydınlatmalar, klimalar, otomatik kapılar kapatıldı',critical:false},
+    ]}]},
+  {id:'gece_bekcisi',title:'Gece Bekçisi',icon:'🌙',color:'#1A1A3A',shift:0,trigger:'hourly_night',roles:['manager','gece_bekcisi'],note:'Her saat 00:00–08:00 arası tamamlanır. Cuma: Jeneratör test',
+    sections:[{title:'GECE GÜVENLİK KONTROL',tasks:[
+        {id:'gb01',text:'Şemsiyeler altında izmarit / yanık kontrolü',critical:false},
+        {id:'gb02',text:'Veranda tavanında açık soba / elektrik riski',critical:false},
+        {id:'gb03',text:'Yangın güvenliği kontrolleri (anıt kule, çöp alanları)',critical:false},
+        {id:'gb04',text:'Tüm işletme su birikmesi / su akıntısı kontrolü',critical:false},
+        {id:'gb05',text:'Soğuk odalar sıcaklık kontrolü',critical:true},
+        {id:'gb06',text:'Ana elektrik panosu kontrolü',critical:false},
+        {id:'gb07',text:'IT odası erişim / ekipman durumu',critical:false},
+        {id:'gb08',text:'Gereksiz açık ışık / cihaz kontrolü',critical:false},
+        {id:'gb09',text:'Tüm dış alanlar devriye kontrolü (teras, bahçe, otopark)',critical:false},
+        {id:'gb10',text:'Müşteri salonları zemin temizliği ve masa sandalye düzeni',critical:false},
+    ]}]},
+  {id:'haftalik',title:'Haftalık Derin Temizlik',icon:'✨',color:'#2A5020',shift:1,trigger:'weekly',roles:['manager','temizlik'],note:'Her Pazartesi sabah vardiyasında tamamlanır',
+    sections:[
+      {title:'ZEMİN & CAM',tasks:[
+        {id:'ht01',text:'Giriş kat zemin yıkama makinesiyle temizlendi',critical:true},
+        {id:'ht02',text:'Makinenin giremediği alanlar mop ve paspas ile temizlendi',critical:true},
+        {id:'ht03',text:'Tüm cam yüzeyler iç-dış detaylı silindi',critical:true},
+      ]},
+      {title:'SEDİR, MOBİLYA & TUVALETLERm',tasks:[
+        {id:'ht04',text:'Tüm sedirlerin toz, saç ve lekeleri temizlendi',critical:true},
+        {id:'ht05',text:'Tüm hareketli mobilyalar temizlendi',critical:false},
+        {id:'ht06',text:'Tuvaletler çamaşır suyu ile detaylı dezenfekte edildi',critical:true},
+        {id:'ht07',text:'Ofislerin genel temizliği yapıldı',critical:false},
+      ]}
+    ]},
+];
+
+// ================================================================
+// APP STATE
+// ================================================================
+let S={user:null,userDoc:null,currentForm:null,currentSubId:null,taskStates:{},incidentStates:{},navStack:[],currentNav:'sop'};
+
+function today(){return new Date().toISOString().slice(0,10);}
+function shiftNow(){const h=new Date().getHours();return(h>=7&&h<16)?1:2;}
+
+// ================================================================
+// FIREBASE HELPERS
+// ================================================================
+async function saveSubmission(formId,data){
+  const r=await addDoc(collection(db,'submissions'),{formId,date:today(),shift:shiftNow(),userId:S.user.uid,userName:S.userDoc.name,userRole:S.userDoc.role,status:'submitted',...data,createdAt:serverTimestamp()});
+  return r.id;
+}
+async function updateSubmission(id,data){await updateDoc(doc(db,'submissions',id),data);}
+async function uploadPhoto(taskId,file){
+  const path=`photos/${today()}/${S.user.uid}_${taskId}_${Date.now()}`;
+  const r=sRef(stor,path);await uploadBytes(r,file);return getDownloadURL(r);
+}
+async function getTodaySubmissions(uid){
+  const q=query(collection(db,'submissions'),where('date','==',today()),where('userId','==',uid));
+  const snap=await getDocs(q);const res={};snap.forEach(d=>res[d.data().formId]={id:d.id,...d.data()});return res;
+}
+async function getPending(){
+  const q=query(collection(db,'submissions'),where('status','==','submitted'),orderBy('createdAt','desc'),limit(50));
+  const snap=await getDocs(q);return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function getAllToday(){
+  const q=query(collection(db,'submissions'),where('date','==',today()));
+  const snap=await getDocs(q);return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function getShift(){
+  const snap=await getDoc(doc(db,'config','weekly_shift'));
+  return snap.exists()?snap.data():{weeks:{}};
+}
+async function saveShift(data){await setDoc(doc(db,'config','weekly_shift'),data);}
+
+// ================================================================
+// AUTH
+// ================================================================
+window.doLogin=async function(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const btn=document.getElementById('lbtn');
+  const err=document.getElementById('lerr');
+  if(!email||!pass){showLErr('E-posta ve şifre giriniz.');return;}
+  btn.disabled=true;btn.textContent='Giriş yapılıyor...';err.style.display='none';
+  try{await signInWithEmailAndPassword(auth,email,pass);}
+  catch(e){showLErr('Giriş başarısız.');btn.disabled=false;btn.textContent='Giriş Yap';}
+};
+function showLErr(m){const e=document.getElementById('lerr');e.textContent=m;e.style.display='block';}
+window.doLogout=function(){signOut(auth);};
+
+onAuthStateChanged(auth,async user=>{
+  if(user){
+    S.user=user;
+    const snap=await getDoc(doc(db,'users',user.uid));
+    if(!snap.exists()){showLErr('Kullanıcı profili bulunamadı.');signOut(auth);return;}
+    S.userDoc=snap.data();
+    showScreen('app-screen');
+    document.getElementById('uinfo').textContent=`${S.userDoc.name} · ${ROLES[S.userDoc.role]?.label||S.userDoc.role}`;
+    document.getElementById('bnav').style.display='flex';
+    navTo('sop');
+  }else{
+    S.user=null;S.userDoc=null;
+    showScreen('login-screen');
+    document.getElementById('bnav').style.display='none';
+    document.getElementById('lbtn').disabled=false;document.getElementById('lbtn').textContent='Giriş Yap';
+  }
+});
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function setTitle(t){document.getElementById('ttl').textContent=t;}
+function showBack(b){document.getElementById('back-btn').style.display=b?'block':'none';}
+function showSBar(b){document.getElementById('sbar').style.display=b?'flex':'none';}
+
+window.navTo=function(nav){
+  S.currentNav=nav;S.navStack=[];S.currentForm=null;
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+nav);if(nb)nb.classList.add('active');
+  showBack(false);showSBar(false);
+  const navMap={sop:renderSOP,rules:renderRules,jd:renderJD,shift:renderShift,log:renderLogbook};
+  if(navMap[nav])navMap[nav]();
+};
+
+window.goBack=function(){if(S.navStack.length>0){const fn=S.navStack.pop();fn();}else navTo(S.currentNav);};
+
+// ================================================================
+// SOP HOME
+// ================================================================
+async function renderSOP(){
+  setTitle('Checklistler');
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  const isManager=S.userDoc.role==='manager';
+  if(isManager){await renderManagerHome();}else{await renderStaffHome();}
+}
+
+async function renderStaffHome(){
+  const role=S.userDoc.role;
+  const subs=await getTodaySubmissions(S.user.uid);
+  const shift=shiftNow();
+  const el=document.getElementById('main-content');
+  const myForms=FORMS.filter(f=>f.roles.includes(role)&&(f.shift===0||f.shift===shift||['weekly','handover','anytime'].includes(f.trigger)));
+  const dateStr=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
+  let html=`<div style="margin-bottom:16px;"><div style="font-size:13px;color:var(--g4);">${dateStr}</div>
+    <div style="font-size:17px;font-weight:700;margin-top:2px;">Merhaba, ${S.userDoc.name} 👋</div>
+    <div style="font-size:13px;color:var(--g4);margin-top:2px;">${shift===1?'1. Vardiya (07:30–16:30)':'2. Vardiya (16:00–01:00)'}</div></div>`;
+  const pending=myForms.filter(f=>!subs[f.id]);
+  const done=myForms.filter(f=>subs[f.id]);
+  if(pending.length){html+=`<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Bekleyen (${pending.length})</div>`;pending.forEach(f=>{html+=formItemHTML(f,null);});}
+  if(done.length){html+=`<div class="sep"></div><div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.5px;margin:8px 0;">Tamamlanan (${done.length})</div>`;done.forEach(f=>{html+=formItemHTML(f,subs[f.id]);});}
+  el.innerHTML=html;
+}
+
+function formItemHTML(f,sub){
+  let badge='',bc='#E8E0D8';
+  if(!sub){badge='<span class="badge b-pend">● Bekliyor</span>';bc='#FFF3E0';}
+  else if(sub.status==='approved'){badge='<span class="badge b-appr">✓ Onaylandı</span>';bc='#E8F5E9';}
+  else if(sub.status==='rejected'){badge='<span class="badge b-rej">✗ Reddedildi</span>';bc='#FFEBEE';}
+  else{badge='<span class="badge b-sub">⏳ Onay Bekliyor</span>';bc='#E3F2FD';}
+  const total=f.sections.reduce((s,sec)=>s+sec.tasks.length,0);
+  return`<div class="li" onclick="openForm('${f.id}')" style="background:${bc}20;border-color:${bc};">
+    <div class="li-ico" style="background:${f.color}20;">${f.icon}</div>
+    <div class="li-info"><div class="li-title">${f.title}</div>
+    <div class="li-meta">${total} görev · ${['','1. Vardiya','2. Vardiya'][f.shift]||'Her Vardiya'}</div>
+    <div style="margin-top:4px;">${badge}</div></div>
+    <div style="color:var(--g4);font-size:18px;">›</div></div>`;
+}
+
+async function renderManagerHome(){
+  const el=document.getElementById('main-content');
+  const [pending,allToday]=await Promise.all([getPending(),getAllToday()]);
+  const approved=allToday.filter(s=>s.status==='approved').length;
+  const rejected=allToday.filter(s=>s.status==='rejected').length;
+  const submitted=allToday.filter(s=>s.status==='submitted').length;
+  const dateStr=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
+  let html=`<div style="margin-bottom:16px;">
+    <div style="font-size:13px;color:var(--g4);">${dateStr}</div>
+    <div style="font-size:17px;font-weight:700;margin-top:2px;">Yönetici Paneli</div></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-n" style="color:var(--warn);">${submitted}</div><div class="stat-l">Onay Bekliyor</div></div>
+      <div class="stat"><div class="stat-n" style="color:var(--ok);">${approved}</div><div class="stat-l">Onaylandı</div></div>
+      <div class="stat"><div class="stat-n" style="color:var(--err);">${rejected}</div><div class="stat-l">Reddedildi</div></div>
+      <div class="stat"><div class="stat-n">${allToday.length}</div><div class="stat-l">Toplam</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="mgrTab('approvals',this)">Onay Bekleyenler (${submitted})</button>
+      <button class="tab" onclick="mgrTab('forms',this)">Tüm Formlar</button>
+    </div>
+    <div id="mgr-content">${renderApprovalList(pending.filter(s=>s.status==='submitted'))}</div>`;
+  el.innerHTML=html;
+}
+
+function renderApprovalList(items){
+  if(!items.length)return'<div class="empty">✅ Onay bekleyen form yok.</div>';
+  return items.map(sub=>{
+    const form=FORMS.find(f=>f.id===sub.formId);if(!form)return'';
+    const all=form.sections.flatMap(s=>s.tasks);
+    const done=Object.values(sub.taskStates||{}).filter(t=>t.checked).length;
+    return`<div class="appr">
+      <div class="appr-hdr">
+        <div><div style="font-size:14px;font-weight:600;">${form.icon} ${form.title}</div>
+        <div style="font-size:12px;color:var(--g4);">${sub.userName} · ${sub.createdAt?.toDate?.().toLocaleString('tr-TR')||'Az önce'}</div></div>
+        <span class="badge b-sub">Bekliyor</span></div>
+      <div class="appr-body">
+        <div style="font-size:13px;margin-bottom:8px;">${done} / ${all.length} görev tamamlandı</div>
+        <div style="max-height:200px;overflow-y:auto;">
+          ${all.map(t=>{const ts=(sub.taskStates||{})[t.id]||{};
+            return`<div class="appr-task"><div class="dot ${ts.checked?'y':'n'}">${ts.checked?'✓':'✗'}</div>
+              <div style="flex:1;font-size:12px;">${t.text}${t.critical?'<span style="color:var(--accent);"> ★</span>':''}</div>
+              ${ts.photoUrl?`<img class="thumb" src="${ts.photoUrl}" onclick="viewPhoto('${ts.photoUrl}')"/>`:''}</div>`;}).join('')}
+        </div>
+        ${sub.note?`<div class="note-box">📝 ${sub.note}</div>`:''}
+        <div class="appr-acts">
+          <button class="btn btn-ok" style="flex:1;" onclick="approveS('${sub.id}')">✓ Onayla</button>
+          <button class="btn btn-err" style="flex:1;" onclick="rejectS('${sub.id}')">✗ Reddet</button>
+        </div>
+      </div></div>`;}).join('');
+}
+
+window.mgrTab=function(tab,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const el=document.getElementById('mgr-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  if(tab==='approvals'){getPending().then(items=>{el.innerHTML=renderApprovalList(items.filter(s=>s.status==='submitted'));});}
+  else{let html='';FORMS.forEach(f=>{html+=formItemHTML(f,null);});el.innerHTML=html;}
+};
+
+// ================================================================
+// FORM VIEW
+// ================================================================
+window.openForm=async function(formId){
+  const form=FORMS.find(f=>f.id===formId);if(!form)return;
+  S.currentForm=form;S.taskStates={};S.incidentStates={};
+  S.navStack.push(()=>renderSOP());
+  setTitle(form.title);showBack(true);
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const subs=await getTodaySubmissions(S.user.uid);
+  const existing=subs[formId];
+  if(existing){S.taskStates=existing.taskStates||{};S.incidentStates=existing.incidentStates||{};S.currentSubId=existing.id;}
+  renderFormView(form,existing);
+};
+
+function renderFormView(form,existing){
+  const allTasks=form.sections.flatMap(s=>s.tasks);
+  const isRO=existing&&(existing.status==='submitted'||existing.status==='approved');
+  let html='';
+  if(form.note)html+=`<div class="note-box">ℹ️ ${form.note}</div>`;
+  if(existing){
+    const sm={submitted:'Onay Bekliyor',approved:'Onaylandı ✓',rejected:'Reddedildi ✗'};
+    const sc={submitted:'alert-info',approved:'alert-ok',rejected:'alert-err'};
+    html+=`<div class="alert ${sc[existing.status]||'alert-info'}">${sm[existing.status]||existing.status}</div>`;
+    if(existing.managerNote)html+=`<div class="note-box">Yönetici: ${existing.managerNote}</div>`;
+  }
+  form.sections.forEach(sec=>{
+    html+=`<div class="sec-hdr">${sec.title}</div>`;
+    sec.tasks.forEach(task=>{
+      const ts=S.taskStates[task.id]||{};const checked=!!ts.checked;const hasPhoto=!!ts.photoUrl;
+      html+=`<div class="task ${checked?'done':''} ${task.critical?'crit':''}" id="task-${task.id}">
+        <div class="task-row">
+          <div class="chk ${checked?'on':''}" data-id="${task.id}" ${isRO?'':'onclick="toggleTask(this.dataset.id)"'}>${checked?'✓':''}</div>
+          <div style="flex:1;"><div class="task-txt ${checked?'done':''}">${task.text}</div>
+          ${task.critical?'<div class="crit-lbl">★ Fotoğraf zorunlu</div>':''}</div>
+        </div>
+        ${task.critical&&!isRO?`<div class="photo-area" id="pa-${task.id}">${hasPhoto?`<div class="photo-ok">✓ Fotoğraf eklendi</div><img class="photo-preview" src="${ts.photoUrl}" onclick="viewPhoto('${ts.photoUrl}')"/>`:`<div class="photo-btn" onclick="triggerPhoto('${task.id}')">📷 Fotoğraf Çek / Ekle</div>`}</div>`:''} 
+        ${task.critical&&isRO&&hasPhoto?`<img class="photo-preview" src="${ts.photoUrl}" onclick="viewPhoto('${ts.photoUrl}')"/>`:''}</div>`;
+    });
+  });
+  html+=`<div style="margin-top:24px;"><div class="sec-hdr">Olağandışı Olaylar</div>
+    <div style="font-size:12px;color:var(--g4);margin-bottom:10px;">G = Gerçekleşti · A = Aksiyon Alındı</div>`;
+  INCIDENTS.forEach((inc,i)=>{
+    const st=S.incidentStates[inc]||{};
+    html+=`<div class="inc-row ${st.g?'has-g':''}" id="inc-${i}">
+      <div class="inc-lbl">${inc}</div>
+      <button class="inc-btn ${st.g?'g-on':''}" ${isRO?'disabled':''} onclick="toggleInc('${inc}','g')">G</button>
+      <button class="inc-btn ${st.a?'a-on':''}" ${isRO?'disabled':''} onclick="toggleInc('${inc}','a')">A</button>
+    </div>`;
+  });
+  html+='</div>';
+  if(!isRO)html+=`<div style="margin-top:16px;"><div class="sec-hdr">Vardiya Notu</div>
+    <div class="fg" style="margin-top:8px;"><textarea id="shift-note" rows="3" placeholder="Önemli bir durum varsa...">${existing?.note||''}</textarea></div></div>`;
+  else if(existing?.note)html+=`<div class="note-box" style="margin-top:16px;">📝 ${existing.note}</div>`;
+  html+='<div style="height:80px;"></div>';
+  document.getElementById('main-content').innerHTML=html;
+  if(!isRO){updateProgress(form);showSBar(true);}else showSBar(false);
+}
+
+function updateProgress(form){
+  const all=form.sections.flatMap(s=>s.tasks);
+  const checked=all.filter(t=>S.taskStates[t.id]?.checked).length;
+  const critMiss=all.filter(t=>t.critical&&S.taskStates[t.id]?.checked&&!S.taskStates[t.id]?.photoUrl).length;
+  document.getElementById('prog-txt').textContent=`${checked} / ${all.length} görev`;
+  const btn=document.getElementById('sub-btn');btn.disabled=critMiss>0;
+}
+
+window.toggleTask=function(id){
+  if(!S.taskStates[id])S.taskStates[id]={};S.taskStates[id].checked=!S.taskStates[id].checked;
+  const el=document.getElementById('task-'+id);const chk=el.querySelector('.chk');const txt=el.querySelector('.task-txt');const c=S.taskStates[id].checked;
+  chk.className='chk'+(c?' on':'');chk.textContent=c?'✓':'';txt.className='task-txt'+(c?' done':'');
+  el.className=el.className.replace('done','').trim()+(c?' done':'');
+  updateProgress(S.currentForm);autoSave();
+};
+window.toggleInc=function(name,type){
+  if(!S.incidentStates[name])S.incidentStates[name]={};S.incidentStates[name][type]=!S.incidentStates[name][type];
+  const i=INCIDENTS.indexOf(name);const row=document.getElementById('inc-'+i);
+  if(type==='g'){row.className='inc-row'+(S.incidentStates[name].g?' has-g':'');row.querySelectorAll('.inc-btn')[0].className='inc-btn'+(S.incidentStates[name].g?' g-on':'');}
+  else{row.querySelectorAll('.inc-btn')[1].className='inc-btn'+(S.incidentStates[name].a?' a-on':'');}
+};
+let pendingPhotoId=null;
+window.triggerPhoto=function(id){pendingPhotoId=id;document.getElementById('photo-input').click();};
+document.getElementById('photo-input').addEventListener('change',async function(e){
+  const file=e.target.files[0];if(!file||!pendingPhotoId)return;
+  const id=pendingPhotoId;const area=document.getElementById('pa-'+id);
+  if(area)area.innerHTML='<div style="font-size:12px;color:var(--g4);">Yükleniyor...</div>';
+  try{const url=await uploadPhoto(id,file);if(!S.taskStates[id])S.taskStates[id]={};S.taskStates[id].photoUrl=url;
+    if(area)area.innerHTML=`<div class="photo-ok">✓ Fotoğraf eklendi</div><img class="photo-preview" src="${url}" onclick="viewPhoto('${url}')"/>`;
+    updateProgress(S.currentForm);showToast('Fotoğraf yüklendi ✓');}
+  catch{showToast('Fotoğraf yüklenemedi.');if(area)area.innerHTML=`<div class="photo-btn" onclick="triggerPhoto('${id}')">📷 Tekrar Dene</div>`;}
+  this.value='';pendingPhotoId=null;
+});
+window.viewPhoto=function(url){window.open(url,'_blank');};
+let autoSaveTimer=null;
+function autoSave(){clearTimeout(autoSaveTimer);autoSaveTimer=setTimeout(async()=>{
+  if(!S.currentForm||!S.user)return;
+  const data={taskStates:S.taskStates,incidentStates:S.incidentStates,status:'draft'};
+  if(S.currentSubId)await updateSubmission(S.currentSubId,data);
+  else{const id=await saveSubmission(S.currentForm.id,data);S.currentSubId=id;}
+},1500);}
+window.submitForm=async function(){
+  const form=S.currentForm;if(!form)return;
+  const all=form.sections.flatMap(s=>s.tasks);
+  const critMiss=all.filter(t=>t.critical&&S.taskStates[t.id]?.checked&&!S.taskStates[t.id]?.photoUrl);
+  if(critMiss.length){showToast(`${critMiss.length} kritik görevin fotoğrafı eksik!`);return;}
+  const note=document.getElementById('shift-note')?.value||'';
+  const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='Gönderiliyor...';
+  try{const data={taskStates:S.taskStates,incidentStates:S.incidentStates,status:'submitted',note};
+    if(S.currentSubId)await updateSubmission(S.currentSubId,data);else await saveSubmission(form.id,data);
+    showToast('Form gönderildi ✓');showSBar(false);setTimeout(()=>navTo('sop'),1200);}
+  catch{showToast('Gönderme hatası.');btn.disabled=false;btn.textContent='Gönder & Onaya Sun';}
+};
+window.approveS=async function(id){
+  await updateDoc(doc(db,'submissions',id),{status:'approved',approvedBy:S.userDoc.name,approvedAt:serverTimestamp()});
+  showToast('Onaylandı ✓');renderManagerHome();
+};
+window.rejectS=async function(id){
+  const note=prompt('Ret sebebi (isteğe bağlı):')||'';
+  await updateDoc(doc(db,'submissions',id),{status:'rejected',managerNote:note,rejectedBy:S.userDoc.name,rejectedAt:serverTimestamp()});
+  showToast('Reddedildi.');renderManagerHome();
+};
+
+// ================================================================
+// KURALLAR
+// ================================================================
+function renderRules(){
+  setTitle('Bilgilendirme & Kurallar');
+  const el=document.getElementById('main-content');
+  let html=`<div class="alert alert-info" style="margin-bottom:16px;">📖 Local People Coffee — Genel Personel Davranış Kuralları</div>`;
+  RULES.forEach(sec=>{
+    html+=`<div class="rules-section"><h2>${sec.title}</h2><ul>`;
+    sec.items.forEach(item=>{html+=`<li>${item}</li>`;});
+    html+=`</ul></div>`;
+  });
+  html+='<div style="height:20px;"></div>';
+  el.innerHTML=html;
+}
+
+// ================================================================
+// GÖREV TANIMLARI
+// ================================================================
+function renderJD(){
+  setTitle('Görev Tanımları');
+  const el=document.getElementById('main-content');
+  const isManager=S.userDoc.role==='manager';
+  let html='';
+  // Missing JD warning — manager only
+  if(isManager&&MISSING_JD.length){
+    html+=`<div class="missing-banner">
+      <div class="title">⚠️ Eksik Görev Tanımları — Aksiyon Gerekiyor</div>
+      <p style="font-size:12px;color:var(--g6);margin-bottom:8px;">Aşağıdaki pozisyonlar için görev tanımı henüz sisteme eklenmemiştir. Lütfen tamamlayın veya tamamlanması için talimat verin.</p>
+      ${MISSING_JD.map(r=>`<div class="item">${MISSING_JD_LABELS[r]} — Görev tanımı eksik</div>`).join('')}
+    </div>`;
+  }
+  if(isManager){
+    // Manager sees all JDs
+    html+=`<div class="tabs"><button class="tab active" onclick="jdTab(this,'all')">Tümü</button><button class="tab" onclick="jdTab(this,'missing')">Eksikler</button></div>`;
+    html+=`<div id="jd-content">`;
+    Object.entries(JOB_DESCRIPTIONS).forEach(([key,jd])=>{html+=renderJDCard(key,jd);});
+    html+=`</div>`;
+  }else{
+    const jd=JOB_DESCRIPTIONS[S.userDoc.role];
+    if(jd){html+=renderJDCard(S.userDoc.role,jd);}
+    else{html+=`<div class="alert alert-warn">⚠️ ${ROLES[S.userDoc.role]?.label||S.userDoc.role} pozisyonu için görev tanımı henüz sisteme eklenmemiştir. Yöneticinizle iletişime geçiniz.</div>`;}
+  }
+  html+='<div style="height:20px;"></div>';
+  el.innerHTML=html;
+}
+
+window.jdTab=function(btn,tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const el=document.getElementById('jd-content');
+  let html='';
+  if(tab==='all'){Object.entries(JOB_DESCRIPTIONS).forEach(([key,jd])=>{html+=renderJDCard(key,jd);});}
+  else{MISSING_JD.forEach(r=>{html+=`<div class="card"><div style="font-size:14px;font-weight:700;color:var(--err);margin-bottom:8px;">⚠️ ${MISSING_JD_LABELS[r]}</div><div class="alert alert-warn">Bu pozisyon için görev tanımı henüz hazırlanmamıştır. Lütfen gerekli dokümantasyonu hazırlayarak sisteme ekleyin.</div></div>`;});}
+  el.innerHTML=html;
+};
+
+function renderJDCard(key,jd){
+  const role=ROLES[key];
+  return`<div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:${role?.color||'#888'}22;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
+      <div><div style="font-size:15px;font-weight:700;">${jd.title}</div>
+      <div style="font-size:11px;color:var(--g4);text-transform:uppercase;letter-spacing:.5px;">${role?.label||key}</div></div>
+    </div>
+    <div style="font-size:13px;color:var(--g6);line-height:1.6;padding:10px;background:var(--g1);border-radius:8px;margin-bottom:12px;">${jd.amaç}</div>
+    ${jd.sections.map(sec=>`<div class="jd-section"><h3>${sec.title}</h3><ul>${sec.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('')}
+  </div>`;
+}
+
+// ================================================================
+// SHIFT PLANI
+// ================================================================
+const SHIFT_DAYS=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const SHIFT_POSITIONS=['Bar Şefi','Kasa & Bakery','Espresso','Soğuk & Sıcak Bar','Joker','Komi','Temizlik','Gece Bekçisi'];
+
+async function renderShift(){
+  setTitle('Haftalık Shift Planı');
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  const shiftData=await getShift();
+  const isManager=S.userDoc.role==='manager';
+  const weekKey=getWeekKey();
+  const week=shiftData.weeks?.[weekKey]||{};
+  const dateStr=getWeekLabel();
+  let html=`<div style="margin-bottom:12px;"><div style="font-size:13px;color:var(--g4);">Hafta: ${dateStr}</div>
+    <div style="font-size:15px;font-weight:700;margin-top:2px;">Vardiya Planı</div></div>`;
+  if(isManager){
+    html+=`<div class="alert alert-info" style="margin-bottom:12px;">📝 Hücrelere tıklayarak düzenleyebilirsiniz.</div>`;
+  }else{
+    html+=`<div class="alert alert-info" style="margin-bottom:12px;">📅 Bu haftanın vardiya planı aşağıdadır.</div>`;
+  }
+  html+=`<div class="shift-grid"><table class="shift-table"><thead><tr>
+    <th style="text-align:left;padding-left:10px;">Pozisyon</th>
+    ${SHIFT_DAYS.map(d=>`<th>${d.slice(0,3)}</th>`).join('')}
+  </tr></thead><tbody>`;
+  SHIFT_POSITIONS.forEach((pos,pi)=>{
+    html+=`<tr><td>${pos}</td>`;
+    SHIFT_DAYS.forEach((day,di)=>{
+      const val=week[`${pi}_${di}`]||'';
+      if(isManager){
+        html+=`<td><input type="text" value="${val}" style="width:100%;border:none;background:transparent;font-size:11px;text-align:center;outline:none;padding:2px;" oninput="updateShiftCell(${pi},${di},this.value)" placeholder="—"/></td>`;
+      }else{
+        const cls=val&&val.includes('1.')?'s1':val&&val.includes('2.')?'s2':val?'s1':'';
+        html+=`<td>${val?`<span class="shift-cell ${cls}">${val}</span>`:'-'}</td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  html+=`</tbody></table></div>`;
+  if(isManager){
+    html+=`<div style="margin-top:16px;"><button class="btn btn-p btn-full" onclick="saveShiftPlan()">💾 Shift Planını Kaydet</button></div>`;
+  }
+  html+='<div style="height:20px;"></div>';
+  el.innerHTML=html;
+  window._shiftData=shiftData;window._weekKey=weekKey;
+}
+
+window.updateShiftCell=function(pi,di,val){
+  if(!window._shiftData.weeks)window._shiftData.weeks={};
+  if(!window._shiftData.weeks[window._weekKey])window._shiftData.weeks[window._weekKey]={};
+  window._shiftData.weeks[window._weekKey][`${pi}_${di}`]=val;
+};
+window.saveShiftPlan=async function(){
+  try{await saveShift(window._shiftData);showToast('Shift planı kaydedildi ✓');}
+  catch{showToast('Kaydetme hatası.');}
+};
+function getWeekKey(){const d=new Date();const day=d.getDay()||7;const mon=new Date(d);mon.setDate(d.getDate()-day+1);return mon.toISOString().slice(0,10);}
+function getWeekLabel(){const d=new Date();const day=d.getDay()||7;const mon=new Date(d);mon.setDate(d.getDate()-day+1);const sun=new Date(mon);sun.setDate(mon.getDate()+6);const fmt=dt=>dt.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});return`${fmt(mon)} – ${fmt(sun)}`;}
+
+// ================================================================
+// LOGBOOK
+// ================================================================
+async function renderLogbook(){
+  setTitle('Operasyonel Logbook');
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const q=query(collection(db,'logbook'),orderBy('createdAt','desc'),limit(30));
+  const snap=await getDocs(q);
+  const entries=snap.docs.map(d=>({id:d.id,...d.data()}));
+  let html=`<div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Yeni Kayıt Ekle</div>
+    <div class="fg"><label>Sorun / Açıklama</label><textarea id="log-desc" rows="3" placeholder="Gözlemlenen sorunu açıklayın..."></textarea></div>
+    <div class="fg"><label>Alınan Aksiyon</label><input type="text" id="log-action" placeholder="Yapılan işlem..."/></div>
+    <div class="fg"><label>Bildirilen Kişi / Birim</label><input type="text" id="log-reported" placeholder="Örn: Teknik servis"/></div>
+    <button class="btn btn-p btn-full" onclick="addLog()">Kayıt Ekle</button></div>`;
+  if(entries.length){
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Son Kayıtlar</div>`;
+    entries.forEach(e=>{html+=`<div class="card" style="padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:11px;font-weight:700;color:var(--accent);">${e.user||'—'} · ${e.role||''}</span>
+        <span style="font-size:11px;color:var(--g4);">${e.createdAt?.toDate?.().toLocaleString('tr-TR')||''}</span></div>
+      <div style="font-size:13px;">${e.description}</div>
+      ${e.action?`<div style="font-size:12px;color:var(--ok);margin-top:3px;">Aksiyon: ${e.action}</div>`:''}
+      ${e.reported?`<div style="font-size:11px;color:var(--g4);">Bildirildi: ${e.reported}</div>`:''}
+    </div>`;});
+  }else html+='<div class="empty">📋 Henüz kayıt yok.</div>';
+  html+='<div style="height:20px;"></div>';
+  el.innerHTML=html;
+}
+window.addLog=async function(){
+  const desc=document.getElementById('log-desc').value.trim();
+  if(!desc){showToast('Açıklama gereklidir.');return;}
+  const action=document.getElementById('log-action').value.trim();
+  const reported=document.getElementById('log-reported').value.trim();
+  await addDoc(collection(db,'logbook'),{description:desc,action,reported,user:S.userDoc.name,role:S.userDoc.role,createdAt:serverTimestamp()});
+  showToast('Kayıt eklendi ✓');renderLogbook();
+};
+
+// ================================================================
+// UTILS
+// ================================================================
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+window.showToast=showToast;
+</script>
+</body>
+</html>
