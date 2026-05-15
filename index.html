@@ -879,7 +879,7 @@ async function getTodaySubmissions(uid){
   const snap=await getDocs(q);const res={};snap.forEach(d=>res[d.data().formId]={id:d.id,...d.data()});return res;
 }
 async function getPending(){
-  const q=query(collection(db,'submissions'),where('status','==','submitted'),orderBy('createdAt','desc'),limit(50));
+  const q=query(collection(db,'submissions'),where('status','==','submitted'),limit(50));
   const snap=await getDocs(q);return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 async function getAllToday(){
@@ -931,7 +931,7 @@ onAuthStateChanged(auth,async user=>{
 // ================================================================
 function _showScreenOld(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function _setTitleOld(t){document.getElementById('ttl').textContent=t;}
-function _showBackOld(b){document.getElementById('back-btn').style.display=b?'block':'none';}
+function _showBackOld(b){const btn=document.getElementById('back-btn');if(btn){btn.style.display=b?'flex':'none';btn.classList.toggle('visible',b);}}
 function _showSBarOld(b){document.getElementById('sbar').style.display=b?'flex':'none';}
 
 window.navTo=function(nav){
@@ -990,7 +990,9 @@ function _formItemHTMLOld(f,sub){
 
 async function _renderManagerHomeOld(){
   const el=document.getElementById('main-content');
-  const [pending,allToday]=await Promise.all([getPending(),getAllToday()]);
+  let pending=[],allToday=[];
+  try{[pending,allToday]=await Promise.all([getPending(),getAllToday()]);}
+  catch(e){console.error('Firestore error:',e);}
   const approved=allToday.filter(s=>s.status==='approved').length;
   const rejected=allToday.filter(s=>s.status==='rejected').length;
   const submitted=allToday.filter(s=>s.status==='submitted').length;
@@ -1345,6 +1347,46 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 window.showToast=showToast;
 
 
+
+const FORM_CATEGORIES=[
+  {
+    id:'bar_acilis_kapalis',
+    label:'Bar Açılış & Kapanış',
+    icon:'☕',
+    color:'rgba(51,138,115,.12)',
+    dot:'var(--teal)',
+    desc:'Günlük bar açılış ve kapanış prosedürleri',
+    formIds:['bar_acilis','bar_kapanis_temizlik','bar_kapanis_ops']
+  },
+  {
+    id:'bakery_kasa',
+    label:'Bakery & Kasa',
+    icon:'🥐',
+    color:'rgba(244,209,96,.15)',
+    dot:'var(--peach)',
+    desc:'Bakery ve kasa açılış/kapanış formları',
+    formIds:['bakery_acilis','bakery_kapanis']
+  },
+  {
+    id:'vardiya',
+    label:'Vardiya & Devriye',
+    icon:'🔄',
+    color:'rgba(184,212,216,.2)',
+    dot:'var(--blue)',
+    desc:'Vardiya devir ve devriye temizlik formları',
+    formIds:['vardiya_devir','devriye']
+  },
+  {
+    id:'teknik_guvenlik',
+    label:'Teknik & Güvenlik',
+    icon:'🔧',
+    color:'rgba(150,100,200,.1)',
+    dot:'#9664c8',
+    desc:'Teknik işler, gece bekçisi ve haftalık temizlik',
+    formIds:['teknik','gece_bekcisi','haftalik']
+  },
+];
+
 // ── OVERRIDE: renderSOP → new Odoo-style home ──────────────────
 async function renderSOP(){
   setTitle('Local People');
@@ -1386,7 +1428,7 @@ async function renderStaffHome(){
   </div>`;
 
   if(pending.length>0){
-    html+=`<div class="pending-bar" onclick="navTo('sop')">
+    html+=`<div class="pending-bar" onclick="openStaffForms()">
       <span class="pb-icon">⚡</span>
       <span class="pb-text">${pending.length} bekleyen form</span>
       <span class="pb-count">${pending.length}</span>
@@ -1397,15 +1439,16 @@ async function renderStaffHome(){
   <div class="app-grid">`;
 
   const tiles=[
-    {nav:'sop',icon:'✅',label:'Checklistler',sub:`${pending.length} bekliyor`,color:'tile-teal'},
-    {nav:'rules',icon:'📖',label:'Kurallar',sub:'Genel & Disiplin',color:'tile-peach'},
-    {nav:'jd',icon:'👤',label:'Görev Tanımı',sub:'Pozisyonum',color:'tile-blue'},
-    {nav:'shift',icon:'📅',label:'Shift Plan',sub:'Bu hafta',color:'tile-coral'},
-    {nav:'log',icon:'📋',label:'Logbook',sub:'Olay kaydı',color:'tile-dark'},
+    {fn:"openStaffForms()",icon:'✅',label:'Checklistler',sub:`${pending.length} bekliyor`,color:'tile-teal'},
+    {fn:"navTo('rules')",icon:'📖',label:'Kurallar',sub:'Genel & Disiplin',color:'tile-peach'},
+    {fn:"navTo('jd')",icon:'👤',label:'Görev Tanımı',sub:'Pozisyonum',color:'tile-blue'},
+    {fn:"navTo('shift')",icon:'📅',label:'Shift Plan',sub:'Bu hafta',color:'tile-coral'},
+    {fn:"navTo('log')",icon:'📋',label:'Logbook',sub:'Olay kaydı',color:'tile-dark'},
   ];
 
   tiles.forEach((t,i)=>{
-    html+=`<div class="app-tile ${t.color}" onclick="navTo('${t.nav}')" style="animation-delay:${.04+i*.06}s">
+    const action=t.fn?t.fn:`navTo('${t.nav||'sop'}')`;
+    html+=`<div class="app-tile ${t.color}" onclick="${action}" style="animation-delay:${.04+i*.06}s">
       <div class="at-icon">${t.icon}</div>
       <div class="at-label">${t.label}</div>
       <div class="at-sub">${t.sub}</div>
@@ -1428,7 +1471,9 @@ async function renderStaffHome(){
 
 async function renderManagerHome(){
   const el=document.getElementById('main-content');
-  const [pending,allToday]=await Promise.all([getPending(),getAllToday()]);
+  let pending=[],allToday=[];
+  try{[pending,allToday]=await Promise.all([getPending(),getAllToday()]);}
+  catch(e){console.error('Firestore error:',e);}
   const approved=allToday.filter(s=>s.status==='approved').length;
   const submitted=allToday.filter(s=>s.status==='submitted').length;
   const dateStr=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
@@ -1454,12 +1499,12 @@ async function renderManagerHome(){
   <div class="app-grid">`;
 
   const tiles=[
-    {fn:"openApprovals()",icon:'✅',label:'Checklistler',sub:`${submitted} onay bekliyor`,color:'tile-teal',badge:submitted>0?submitted:0},
+    {fn:"openAllForms()",icon:'✅',label:'Checklistler',sub:`Tüm formlar`,color:'tile-teal',badge:0},
     {fn:"navTo('rules')",icon:'📖',label:'Kurallar',sub:'Genel & Disiplin',color:'tile-peach'},
     {fn:"navTo('jd')",icon:'👤',label:'Görev Tanımları',sub:'Tüm pozisyonlar',color:'tile-blue'},
     {fn:"navTo('shift')",icon:'📅',label:'Shift Planı',sub:'Düzenle & Yayınla',color:'tile-coral'},
     {fn:"navTo('log')",icon:'📋',label:'Logbook',sub:'Operasyon kayıtları',color:'tile-dark'},
-    {fn:"openAllForms()",icon:'📊',label:'Tüm Formlar',sub:'Görüntüle',color:'tile-purple'},
+    {fn:"openApprovals()",icon:'🔔',label:'Onay Bekleyen',sub:`${submitted} bekliyor`,color:'tile-coral',badge:submitted>0?submitted:0},
   ];
 
   tiles.forEach((t,i)=>{
@@ -1514,13 +1559,60 @@ window.openApprovals=async function(){
   el.innerHTML=html;
 };
 
-window.openAllForms=function(){
-  setTitle('Tüm Formlar');showBack(true);
+window.openAllForms=async function(){
+  setTitle('Checklistler');showBack(true);
   S.navStack.push(()=>renderSOP());
   const el=document.getElementById('main-content');
-  let html='<div class="form-list">';
-  FORMS.forEach(f=>{html+=formItemHTML(f,null);});
-  html+='</div>';
+  const subs=await getTodaySubmissions(S.user.uid);
+  let html='<div class="page-content">';
+  html+=`<div style="font-family:var(--mono);font-size:9px;color:rgba(0,0,6,.3);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">Operasyon Formları</div>`;
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+  FORM_CATEGORIES.forEach((cat,ci)=>{
+    const catForms=FORMS.filter(f=>cat.formIds.includes(f.id));
+    const pendingCount=catForms.filter(f=>!subs[f.id]||subs[f.id].status==='rejected').length;
+    html+=`<div onclick="openFormCategory('${cat.id}')" style="
+      background:#fff;border:1px solid rgba(0,0,6,.06);border-radius:16px;
+      padding:20px 16px;cursor:pointer;transition:all .18s;
+      box-shadow:0 2px 12px rgba(0,0,6,.06);position:relative;overflow:hidden;
+      animation:tileIn .4s ease ${ci*.06}s both;
+    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,6,.1)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,6,.06)'">
+      ${pendingCount>0?`<div style="position:absolute;top:10px;right:10px;background:var(--coral);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;font-family:var(--mono);">${pendingCount}</div>`:''}
+      <div style="width:48px;height:48px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;position:relative;">
+        ${cat.icon}
+        <div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:${cat.dot};border:2px solid #fff;"></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:4px;">${cat.label}</div>
+      <div style="font-size:11px;color:rgba(0,0,6,.35);margin-bottom:10px;line-height:1.4;">${cat.desc}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:rgba(0,0,6,.3);">${catForms.length} form</div>
+    </div>`;
+  });
+  html+=`</div><div style="height:24px;"></div></div>`;
+  el.innerHTML=html;
+};
+
+window.openFormCategory=async function(catId){
+  const cat=FORM_CATEGORIES.find(c=>c.id===catId);
+  if(!cat)return;
+  S.navStack.push(()=>openAllForms());
+  setTitle(cat.icon+' '+cat.label);showBack(true);
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const subs=await getTodaySubmissions(S.user.uid);
+  const catForms=FORMS.filter(f=>cat.formIds.includes(f.id));
+  let html=`<div class="page-content">`;
+  html+=`<div style="background:#fff;border:1px solid rgba(0,0,6,.06);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+    <div style="width:52px;height:52px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;font-size:26px;">${cat.icon}</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;">${cat.label}</div>
+      <div style="font-size:12px;color:rgba(0,0,6,.4);">${cat.desc}</div>
+    </div>
+  </div>`;
+  catForms.forEach(f=>{
+    const sub=subs[f.id];
+    html+=formItemHTML(f,sub||null);
+  });
+  html+='<div style="height:24px;"></div></div>';
   el.innerHTML=html;
 };
 
@@ -1555,6 +1647,75 @@ window.openForm=async function(formId){
   const existing=subs[formId];
   if(existing){S.taskStates=existing.taskStates||{};S.incidentStates=existing.incidentStates||{};S.currentSubId=existing.id;}
   renderFormView(form,existing);
+};
+
+
+window.openStaffForms=async function(){
+  setTitle('Checklistler');showBack(true);
+  S.navStack.push(()=>renderSOP());
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const role=S.userDoc.role;
+  const shift=shiftNow();
+  const subs=await getTodaySubmissions(S.user.uid);
+  const myForms=FORMS.filter(f=>f.roles.includes(role)&&(role==='admin'||f.shift===0||f.shift===shift||['weekly','handover','anytime'].includes(f.trigger)));
+  
+  let html='<div class="page-content">';
+  html+=`<div style="font-family:var(--mono);font-size:9px;color:rgba(0,0,6,.3);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">Vardiya Formları</div>`;
+  
+  // Group by category
+  const relevantCats=FORM_CATEGORIES.filter(cat=>cat.formIds.some(id=>myForms.find(f=>f.id===id)));
+  
+  if(relevantCats.length>0){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+    relevantCats.forEach((cat,ci)=>{
+      const catForms=myForms.filter(f=>cat.formIds.includes(f.id));
+      if(!catForms.length)return;
+      const pendingCount=catForms.filter(f=>!subs[f.id]||subs[f.id].status==='rejected').length;
+      html+=`<div onclick="openStaffFormCategory('${cat.id}')" style="
+        background:#fff;border:1px solid rgba(0,0,6,.06);border-radius:16px;
+        padding:20px 16px;cursor:pointer;transition:all .18s;
+        box-shadow:0 2px 12px rgba(0,0,6,.06);position:relative;
+        animation:tileIn .4s ease ${ci*.06}s both;
+      " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,6,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,6,.06)'">
+        ${pendingCount>0?`<div style="position:absolute;top:10px;right:10px;background:var(--coral);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;font-family:var(--mono);">${pendingCount}</div>`:''}
+        <div style="width:48px;height:48px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;position:relative;">
+          ${cat.icon}
+          <div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:${cat.dot};border:2px solid #fff;"></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:4px;">${cat.label}</div>
+        <div style="font-size:11px;color:rgba(0,0,6,.35);margin-bottom:10px;line-height:1.4;">${catForms.length} form</div>
+        <div style="font-family:var(--mono);font-size:10px;color:${pendingCount>0?'var(--coral)':'var(--teal)'};">${pendingCount>0?pendingCount+' bekliyor':'Tamamlandı ✓'}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }else{
+    html+='<div class="empty">Bu vardiyada form yok.</div>';
+  }
+  html+='<div style="height:24px;"></div></div>';
+  el.innerHTML=html;
+};
+
+window.openStaffFormCategory=async function(catId){
+  const cat=FORM_CATEGORIES.find(c=>c.id===catId);
+  if(!cat)return;
+  S.navStack.push(()=>openStaffForms());
+  setTitle(cat.icon+' '+cat.label);showBack(true);
+  const el=document.getElementById('main-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const role=S.userDoc.role;const shift=shiftNow();
+  const subs=await getTodaySubmissions(S.user.uid);
+  const myForms=FORMS.filter(f=>cat.formIds.includes(f.id)&&f.roles.includes(role)&&(role==='admin'||f.shift===0||f.shift===shift||['weekly','handover','anytime'].includes(f.trigger)));
+  let html=`<div class="page-content">
+    <div style="background:#fff;border:1px solid rgba(0,0,6,.06);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;font-size:26px;">${cat.icon}</div>
+      <div><div style="font-size:15px;font-weight:700;">${cat.label}</div>
+      <div style="font-size:12px;color:rgba(0,0,6,.4);">${cat.desc}</div></div>
+    </div>`;
+  myForms.forEach(f=>{html+=formItemHTML(f,subs[f.id]||null);});
+  html+='<div style="height:24px;"></div></div>';
+  el.innerHTML=html;
 };
 
 // Helper overrides
